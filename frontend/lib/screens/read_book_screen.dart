@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:epub_view/epub_view.dart'; // Add this package for EPUB support
 
 class ReadBookScreen extends StatefulWidget {
   final String fileUrl;
@@ -21,14 +22,26 @@ class _ReadBookScreenState extends State<ReadBookScreen> {
   String extractedText = "";
   bool isSpeaking = false;
   FlutterTts flutterTts = FlutterTts();
+  EpubController? epubController; // Controller for EPUB rendering
+  bool isEpub = false; // Dynamically set based on file extension
 
   @override
   void initState() {
     super.initState();
-    _downloadAndOpenPDF();
+    _determineFileType(); // Determine if the file is EPUB or PDF
+    _downloadAndOpenFile();
   }
 
-  Future<void> _downloadAndOpenPDF() async {
+  void _determineFileType() {
+    // Check if the file URL ends with .epub
+    if (widget.fileUrl.toLowerCase().endsWith('.epub')) {
+      setState(() {
+        isEpub = true;
+      });
+    }
+  }
+
+  Future<void> _downloadAndOpenFile() async {
     try {
       var response = await http.get(Uri.parse(widget.fileUrl));
       if (response.statusCode == 200) {
@@ -39,7 +52,19 @@ class _ReadBookScreenState extends State<ReadBookScreen> {
         setState(() {
           localFilePath = filePath;
         });
-        _extractTextFromPdf(file); // Extract text after downloading
+
+        if (isEpub) {
+          // Initialize EPUB controller
+          try {
+            epubController = EpubController(
+              document: EpubDocument.openFile(file),
+            );
+          } catch (e) {
+            print("Error opening EPUB file: $e");
+          }
+        } else {
+          _extractTextFromPdf(file); // Extract text for PDF
+        }
       }
     } catch (e) {
       print("Error downloading file: $e");
@@ -83,7 +108,9 @@ class _ReadBookScreenState extends State<ReadBookScreen> {
           Expanded(
             child:
                 localFilePath != null
-                    ? PDFView(filePath: localFilePath!)
+                    ? isEpub
+                        ? EpubView(controller: epubController!)
+                        : PDFView(filePath: localFilePath!)
                     : Center(child: CircularProgressIndicator()),
           ),
           Padding(
@@ -96,5 +123,11 @@ class _ReadBookScreenState extends State<ReadBookScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    epubController?.dispose(); // Dispose EPUB controller
+    super.dispose();
   }
 }
