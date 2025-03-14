@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Ebook Reader',
+      title: 'Quest',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: LoginScreen(), // Start with login screen
     );

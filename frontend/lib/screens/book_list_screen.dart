@@ -13,6 +13,7 @@ class _BookListScreenState extends State<BookListScreen> {
   String userName = "";
   String userEmail = "";
   List books = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -27,10 +28,6 @@ class _BookListScreenState extends State<BookListScreen> {
     String storedName = prefs.getString('userName') ?? "Unknown";
     String storedEmail = prefs.getString('userEmail') ?? "Unknown";
 
-    print("📌 Retrieved User Data in BookListScreen:");
-    print("User Name: $storedName");
-    print("User Email: $storedEmail");
-
     setState(() {
       userName = storedName;
       userEmail = storedEmail;
@@ -38,18 +35,31 @@ class _BookListScreenState extends State<BookListScreen> {
   }
 
   void fetchBooks() async {
+    setState(() {
+      _isLoading = true;
+    });
     List fetchedBooks = await ApiService.fetchBooks();
-    setState(() => books = fetchedBooks);
+    setState(() {
+      books = fetchedBooks;
+      _isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Ebook Reader')),
+      appBar: AppBar(title: Text('Quest'), backgroundColor: Color(0xFF1976D2)),
       drawer: AppDrawer(name: userName, email: userEmail),
       body:
-          books.isEmpty
-              ? Center(child: Text("No books found. Upload one!"))
+          _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : books.isEmpty
+              ? Center(
+                child: Text(
+                  "No books found. Upload one!",
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+              )
               : ListView.builder(
                 itemCount: books.length,
                 itemBuilder:
@@ -58,7 +68,8 @@ class _BookListScreenState extends State<BookListScreen> {
               ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => ApiService.uploadBook(fetchBooks),
-        child: Icon(Icons.upload_file),
+        child: Icon(Icons.upload_file, color: Colors.white), // White icon
+        backgroundColor: Color(0xFF1976D2),
       ),
     );
   }

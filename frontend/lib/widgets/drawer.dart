@@ -10,11 +10,9 @@ class AppDrawer extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Clear stored user data
+    await prefs.clear();
 
-    // Navigate to the login page and remove all previous routes
     Navigator.pushAndRemoveUntil(
-      // ignore: use_build_context_synchronously
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
       (route) => false,
@@ -24,23 +22,52 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.white, // Solid white background
       child: Column(
         children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(
-              name,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Container(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 20,
+              bottom: 20,
             ),
-            accountEmail: Text(email, style: TextStyle(fontSize: 16)),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, size: 40),
+            alignment: Alignment.center,
+            child: Column(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.blue[100], // Light blue circle
+                  radius: 40,
+                  child: Icon(
+                    Icons.person,
+                    size: 40,
+                    color: Colors.blue[800],
+                  ), // Darker blue icon
+                ),
+                SizedBox(height: 10),
+                Text(
+                  name,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  email,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
             ),
           ),
+          Divider(height: 1, color: Colors.grey[300]), // Subtle divider
           ListTile(
             leading: Icon(Icons.logout, color: Colors.red),
-            title: Text('Logout', style: TextStyle(fontSize: 18)),
+            title: Text('Logout', style: TextStyle(fontSize: 16)),
             onTap: () => _logout(context),
+          ),
+          Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20.0),
+            child: Text(
+              "Version 1.0.0",
+              style: TextStyle(color: Colors.grey[600]),
+            ),
           ),
         ],
       ),
